@@ -77,20 +77,18 @@
 
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const refs = {
-	body: document.body,
-	inputDateTime: document.querySelector('#datetime-picker'),
-	btnStartTimer: document.querySelector('button[data-start]'),
-	timerCountdown: document.querySelector('.timer'),
-	days: document.querySelector('span[data-days]'),
-	hours: document.querySelector('span[data-hours]'),
-	minutes: document.querySelector('span[data-minutes]'),
-	seconds: document.querySelector('span[data-seconds]'),
+  body: document.body,
+  inputDateTime: document.querySelector('#datetime-picker'),
+  btnStartTimer: document.querySelector('button[data-start]'),
+  timerCountdown: document.querySelector('.timer'),
+  days: document.querySelector('span[data-days]'),
+  hours: document.querySelector('span[data-hours]'),
+  minutes: document.querySelector('span[data-minutes]'),
+  seconds: document.querySelector('span[data-seconds]'),
 }
-
-console.dir(refs.timerCountdown);
-console.dir(refs.inputDateTime);
 
 let selectedDate = null;
 let timerId = null;
@@ -128,81 +126,80 @@ button {
 refs.body.insertAdjacentHTML('afterbegin', timerStyles);
 
 refs.btnStartTimer.addEventListener('click', onBtnStartTimerClik);
-// inputDateTime.addEventListener('input', onInputSelectDateInput);
 refs.btnStartTimer.disabled = true;
 
 const options = {
-	enableTime: true,
-	time_24hr: true,
-	defaultDate: new Date(),
-	minuteIncrement: 1,
-	onClose(selectedDates) {
-		selectedDate = selectedDates[0];
-		choiceDate();
-	},
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+  onClose(selectedDates) {
+    selectedDate = selectedDates[0];
+    choiceDate();
+  },
 };
 
 flatpickr(refs.inputDateTime, options);
 
 function choiceDate() {
-	const currentDate = Date.now();
-	if (selectedDate <= currentDate) {
-		refs.btnStartTimer.disabled = true;
-		return alert('Ooops');
-	} else {
-		refs.btnStartTimer.disabled = false;
-	};
+  const currentDate = Date.now();
+  if (selectedDate <= currentDate) {
+    refs.btnStartTimer.disabled = true;
+    Notify.failure('Please choose a date in the future');
+  } else {
+    refs.btnStartTimer.disabled = false;
+    Notify.info('The date is correct');
+  };
 }
 
 function onBtnStartTimerClik() {
-	refs.btnStartTimer.disabled = true;
-	refs.inputDateTime.disabled = true;
+  refs.btnStartTimer.disabled = true;
+  refs.inputDateTime.disabled = true;
+  Notify.success('Start the countdown');
 
-	timerId = setInterval(() => {
-		const currentDate = Date.now();
-		// console.log('current time: ', currentDate);
+  timerId = setInterval(() => {
+    const currentDate = Date.now();
 
-		const restTime = selectedDate - currentDate;
-		const timeConvertMs = convertMs(restTime);
-		updateTimerCountdown(timeConvertMs);
-		// console.log(timeConvertMs);
+    const restTime = selectedDate - currentDate;
+    const timeConvertMs = convertMs(restTime);
+    updateTimerCountdown(timeConvertMs);
 
-		if (restTime < 1000) {
-			clearInterval(timerId);
-			refs.btnStartTimer.disabled = false;
-			refs.inputDateTime.disabled = false;
-		}
-	}, 1000);
+    if (restTime < 1000) {
+      clearInterval(timerId);
+      refs.btnStartTimer.disabled = false;
+      refs.inputDateTime.disabled = false;
+    }
+  }, 1000);
 }
 
 function updateTimerCountdown({ days, hours, minutes, seconds }) {
-	refs.days.textContent = addLeadingZero(days);
-	refs.hours.textContent = addLeadingZero(hours);
-	refs.minutes.textContent = addLeadingZero(minutes);
-	refs.seconds.textContent = addLeadingZero(seconds);
+  refs.days.textContent = addLeadingZero(days);
+  refs.hours.textContent = addLeadingZero(hours);
+  refs.minutes.textContent = addLeadingZero(minutes);
+  refs.seconds.textContent = addLeadingZero(seconds);
 }
 
 function addLeadingZero(value) {
-	return String(value).padStart(2, '0');
+  return String(value).padStart(2, '0');
 }
 
 function convertMs(ms) {
-	// Number of milliseconds per unit of time
-	const second = 1000;
-	const minute = second * 60;
-	const hour = minute * 60;
-	const day = hour * 24;
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-	// Remaining days
-	const days = Math.floor(ms / day);
-	// Remaining hours
-	const hours = Math.floor((ms % day) / hour);
-	// Remaining minutes
-	const minutes = Math.floor(((ms % day) % hour) / minute);
-	// Remaining seconds
-	const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  // Remaining days
+  const days = Math.floor(ms / day);
+  // Remaining hours
+  const hours = Math.floor((ms % day) / hour);
+  // Remaining minutes
+  const minutes = Math.floor(((ms % day) % hour) / minute);
+  // Remaining seconds
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
 
-	return { days, hours, minutes, seconds };
+  return { days, hours, minutes, seconds };
 }
 // console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
 // console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
